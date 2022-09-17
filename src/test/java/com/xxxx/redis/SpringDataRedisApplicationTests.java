@@ -148,22 +148,22 @@ public class SpringDataRedisApplicationTests {
     @Test
     public void testList() {
         //添加(入队)
-        ListOperations<String,Object> listOperations = redisTemplate.opsForList();
-        listOperations.leftPush("students","wang wu");
-        listOperations.leftPush("students","li si","zhang san");
-        listOperations.rightPush("students","zhao liu","sun qi");
-        listOperations.rightPush("students","zhou ba");
+        ListOperations<String, Object> listOperations = redisTemplate.opsForList();
+        listOperations.leftPush("students", "wang wu");
+        listOperations.leftPush("students", "li si", "zhang san");
+        listOperations.rightPush("students", "zhao liu", "sun qi");
+        listOperations.rightPush("students", "zhou ba");
         //根据索引修改元素
-        listOperations.set("students",1,"SpringCloud");
+        listOperations.set("students", 1, "SpringCloud");
         //获取（-1代表到最后）
-        listOperations.range("students",0,2).forEach(System.out::println);
+        listOperations.range("students", 0, 2).forEach(System.out::println);
         System.out.println(listOperations.index("students", 1));
         //获取总条数
-        System.out.println("总条数"+listOperations.size("students"));
+        System.out.println("总条数" + listOperations.size("students"));
         //出队
         System.out.println(listOperations.rightPop("students"));
         //删除
-        listOperations.remove("students",1,"li si");
+        listOperations.remove("students", 1, "li si");
         redisTemplate.delete("students");
     }
 
@@ -180,7 +180,7 @@ public class SpringDataRedisApplicationTests {
         setOperations.add("letters", letters);
         // 获取数据
         Set<Object> let = setOperations.members("letters");
-        for (Object letter: let) {
+        for (Object letter : let) {
             System.out.println(letter);
         }
         // 删除
@@ -197,7 +197,7 @@ public class SpringDataRedisApplicationTests {
         ZSetOperations.TypedTuple<Object> objectTypedTuple2 = new DefaultTypedTuple<Object>("lisi", 3D);
         ZSetOperations.TypedTuple<Object> objectTypedTuple3 = new DefaultTypedTuple<Object>("wangwu", 5D);
         ZSetOperations.TypedTuple<Object> objectTypedTuple4 = new DefaultTypedTuple<Object>("zhaoliu", 6D);
-        ZSetOperations.TypedTuple<Object> objectTypedTuple5 =  new DefaultTypedTuple<Object>("tianqi", 2D);
+        ZSetOperations.TypedTuple<Object> objectTypedTuple5 = new DefaultTypedTuple<Object>("tianqi", 2D);
         Set<ZSetOperations.TypedTuple<Object>> tuples = new HashSet<ZSetOperations.TypedTuple<Object>>();
         tuples.add(objectTypedTuple1);
         tuples.add(objectTypedTuple2);
@@ -208,7 +208,7 @@ public class SpringDataRedisApplicationTests {
         zSetOperations.add("score", tuples);
         // 获取数据
         Set<Object> scores = zSetOperations.range("score", 0, 4);
-        for (Object score: scores) {
+        for (Object score : scores) {
             System.out.println(score);
         }
         // 获取总条数
@@ -217,6 +217,7 @@ public class SpringDataRedisApplicationTests {
         // 删除
         zSetOperations.remove("score", "zhangsan", "lisi");
     }
+
     /**
      * 获取所有key
      */
@@ -224,7 +225,7 @@ public class SpringDataRedisApplicationTests {
     public void testAllKeys() {
         // 当前库key的名称
         Set<String> keys = redisTemplate.keys("*");
-        for (String key: keys) {
+        for (String key : keys) {
             System.out.println(key);
         }
     }
@@ -237,6 +238,7 @@ public class SpringDataRedisApplicationTests {
         // 删除 通用 适用于所有数据类型
         redisTemplate.delete("score");
     }
+
     /**
      * 设置key的失效时间
      */
@@ -250,5 +252,17 @@ public class SpringDataRedisApplicationTests {
         // 获取指定key的失效时间
         Long l = redisTemplate.getExpire("code");
         System.out.println(l);
+    }
+
+    /**
+     * 哨兵测试
+     */
+    @Test
+    public void testSentinel() {
+        //后台主服务器进程关掉后注释
+//        redisTemplate.opsForValue().set("spring-data-redis-sentinel","spring-data-redis-sentinel");
+        System.out.println(redisTemplate.opsForValue().get("spring-data-redis-sentinel"));
+        redisTemplate.opsForValue().set("aaa","aaa");        //测试是否可写
+        System.out.println(redisTemplate.opsForValue().get("aaa"));
     }
 }
