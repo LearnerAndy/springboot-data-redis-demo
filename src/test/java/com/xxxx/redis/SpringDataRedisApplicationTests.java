@@ -4,10 +4,7 @@ import com.xxxx.redis.pojo.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -131,7 +128,7 @@ public class SpringDataRedisApplicationTests {
         hashOperations.multiGet("userInfo", keys).forEach(System.out::println);
         System.out.println("-------------------------");
         //批量获取方式二
-        hashOperations.multiGet("userInfo",Arrays.asList("name","age","sex")).forEach(System.out::println);
+        hashOperations.multiGet("userInfo", Arrays.asList("name", "age", "sex")).forEach(System.out::println);
         //获取hash类型所以数据
         Map<String, String> userMap = hashOperations.entries("userInfo");
         userMap.forEach((k, v) -> System.out.println(k + "--" + v));
@@ -139,10 +136,31 @@ public class SpringDataRedisApplicationTests {
             System.out.println(userInfo.getKey() + "--" + userInfo.getValue());
         }
         //删除
-        hashOperations.delete("userInfo","name");
+        hashOperations.delete("userInfo", "name");
     }
 
     /**
-     * 操作
+     * 操作List
      */
+    @Test
+    public void testList() {
+        //添加(入队)
+        ListOperations<String,Object> listOperations = redisTemplate.opsForList();
+        listOperations.leftPush("students","wang wu");
+        listOperations.leftPush("students","li si","zhang san");
+        listOperations.rightPush("students","zhao liu","sun qi");
+        listOperations.rightPush("students","zhou ba");
+        //根据索引修改元素
+        listOperations.set("students",1,"SpringCloud");
+        //获取（-1代表到最后）
+        listOperations.range("students",0,2).forEach(System.out::println);
+        System.out.println(listOperations.index("students", 1));
+        //获取总条数
+        System.out.println("总条数"+listOperations.size("students"));
+        //出队
+        System.out.println(listOperations.rightPop("students"));
+        //删除
+        listOperations.remove("students",1,"li si");
+        redisTemplate.delete("students");
+    }
 }
