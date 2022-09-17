@@ -95,8 +95,11 @@ public class SpringDataRedisApplicationTests {
         System.out.println(redisTemplate.getExpire("abc", TimeUnit.SECONDS));
         //判断是否存在
         System.out.println(redisTemplate.hasKey("abc"));
-        //
-        System.out.println(redisTemplate.keys("abc"));
+        //获取所有key
+        System.out.println("-----------------");
+        redisTemplate.keys("*").forEach(System.out::println);
+        System.out.println("-----------------");
+
         //判断类型
         System.out.println(redisTemplate.type("abc"));
         //过期处理
@@ -162,5 +165,90 @@ public class SpringDataRedisApplicationTests {
         //删除
         listOperations.remove("students",1,"li si");
         redisTemplate.delete("students");
+    }
+
+    /**
+     * 操作set
+     */
+    @Test
+    public void testSet() {
+        SetOperations<String, Object> setOperations =
+                redisTemplate.opsForSet();
+        // 添加数据
+        String[] letters = new String[]{"aaa", "bbb", "ccc", "ddd", "eee"};
+        //setOperations.add("letters", "aaa", "bbb", "ccc", "ddd", "eee");
+        setOperations.add("letters", letters);
+        // 获取数据
+        Set<Object> let = setOperations.members("letters");
+        for (Object letter: let) {
+            System.out.println(letter);
+        }
+        // 删除
+        setOperations.remove("letters", "aaa", "bbb");
+    }
+
+    /**
+     * 操作sorted set-有序
+     */
+    @Test
+    public void testSortedSet() {
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations.TypedTuple<Object> objectTypedTuple1 = new DefaultTypedTuple<Object>("zhangsan", 7D);
+        ZSetOperations.TypedTuple<Object> objectTypedTuple2 = new DefaultTypedTuple<Object>("lisi", 3D);
+        ZSetOperations.TypedTuple<Object> objectTypedTuple3 = new DefaultTypedTuple<Object>("wangwu", 5D);
+        ZSetOperations.TypedTuple<Object> objectTypedTuple4 = new DefaultTypedTuple<Object>("zhaoliu", 6D);
+        ZSetOperations.TypedTuple<Object> objectTypedTuple5 =  new DefaultTypedTuple<Object>("tianqi", 2D);
+        Set<ZSetOperations.TypedTuple<Object>> tuples = new HashSet<ZSetOperations.TypedTuple<Object>>();
+        tuples.add(objectTypedTuple1);
+        tuples.add(objectTypedTuple2);
+        tuples.add(objectTypedTuple3);
+        tuples.add(objectTypedTuple4);
+        tuples.add(objectTypedTuple5);
+        // 添加数据
+        zSetOperations.add("score", tuples);
+        // 获取数据
+        Set<Object> scores = zSetOperations.range("score", 0, 4);
+        for (Object score: scores) {
+            System.out.println(score);
+        }
+        // 获取总条数
+        Long total = zSetOperations.size("score");
+        System.out.println("总条数：" + total);
+        // 删除
+        zSetOperations.remove("score", "zhangsan", "lisi");
+    }
+    /**
+     * 获取所有key
+     */
+    @Test
+    public void testAllKeys() {
+        // 当前库key的名称
+        Set<String> keys = redisTemplate.keys("*");
+        for (String key: keys) {
+            System.out.println(key);
+        }
+    }
+
+    /**
+     * 删除
+     */
+    @Test
+    public void testDelete() {
+        // 删除 通用 适用于所有数据类型
+        redisTemplate.delete("score");
+    }
+    /**
+     * 设置key的失效时间
+     */
+    @Test
+    public void testEx() {
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        // 方法一：插入一条数据并设置失效时间
+        valueOperations.set("code", "abcd", 180, TimeUnit.SECONDS);
+        // 方法二：给已存在的key设置失效时间
+        boolean flag = redisTemplate.expire("code", 180, TimeUnit.SECONDS);
+        // 获取指定key的失效时间
+        Long l = redisTemplate.getExpire("code");
+        System.out.println(l);
     }
 }
