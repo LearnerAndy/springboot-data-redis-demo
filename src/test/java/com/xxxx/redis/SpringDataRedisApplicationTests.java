@@ -4,6 +4,7 @@ import com.xxxx.redis.pojo.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -62,25 +63,25 @@ public class SpringDataRedisApplicationTests {
      */
     @Test
     public void testString() {
-        ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         //过期
-        valueOperations.set("abc","abc",300L, TimeUnit.SECONDS);
+        valueOperations.set("abc", "abc", 300L, TimeUnit.SECONDS);
         //添加数据
-        valueOperations.set("username","zhangsan");
-        valueOperations.set("age",18);
+        valueOperations.set("username", "zhangsan");
+        valueOperations.set("age", 18);
         //以层级关系、目录形式存储数据
-        valueOperations.set("user:01","lisi");
-        valueOperations.set("user:02","wangwu");
+        valueOperations.set("user:01", "lisi");
+        valueOperations.set("user:02", "wangwu");
         // 添加多条数据
         Map<String, String> userMap = new HashMap<>();
-        userMap.put("address","bj");
-        userMap.put("sex","1");
+        userMap.put("address", "bj");
+        userMap.put("sex", "1");
         valueOperations.multiSet(userMap);
         // 获取一条数据
         System.out.println(valueOperations.get("username"));
         // 获取多条数据
         //方式一
-        valueOperations.multiGet(Arrays.asList("username","age","address","sex")).forEach(System.out::println);
+        valueOperations.multiGet(Arrays.asList("username", "age", "address", "sex")).forEach(System.out::println);
         System.out.println("----------------------------");
         //方式二
         List<String> keys = new ArrayList<>();
@@ -94,7 +95,7 @@ public class SpringDataRedisApplicationTests {
         //自增
         System.out.println(valueOperations.increment("account::id", 100));
         //查看过期时间
-        System.out.println(redisTemplate.getExpire("abc",TimeUnit.SECONDS));
+        System.out.println(redisTemplate.getExpire("abc", TimeUnit.SECONDS));
         //判断是否存在
         System.out.println(redisTemplate.hasKey("abc"));
         //
@@ -102,11 +103,43 @@ public class SpringDataRedisApplicationTests {
         //判断类型
         System.out.println(redisTemplate.type("abc"));
         //过期处理
-        redisTemplate.expire("abc",10L,TimeUnit.SECONDS);
+        redisTemplate.expire("abc", 10L, TimeUnit.SECONDS);
         //查看过期时间
-        System.out.println(redisTemplate.getExpire("abc",TimeUnit.SECONDS));
+        System.out.println(redisTemplate.getExpire("abc", TimeUnit.SECONDS));
         //过期处理
 //        redisTemplate.expireAt("abc",)
+    }
+
+    /**
+     * 操作Hash
+     */
+    @Test
+    public void testHash() {
+        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
+        //添加
+        hashOperations.put("userInfo", "name", "lisi");
+        Map<String, String> map = new HashMap<>();
+        map.put("age", "20");
+        map.put("sex", "1");
+        hashOperations.putAll("userInfo", map);
+        //获取
+        System.out.println(hashOperations.get("userInfo", "name"));
+        //批量获取方式一
+        List<String> keys = new ArrayList<>();
+        keys.add("age");
+        keys.add("sex");
+        hashOperations.multiGet("userInfo", keys).forEach(System.out::println);
+        System.out.println("-------------------------");
+        //批量获取方式二
+        hashOperations.multiGet("userInfo",Arrays.asList("name","age","sex")).forEach(System.out::println);
+        //获取hash类型所以数据
+        Map<String, String> userMap = hashOperations.entries("userInfo");
+        userMap.forEach((k, v) -> System.out.println(k + "--" + v));
+        for (Map.Entry<String, String> userInfo : userMap.entrySet()) {
+            System.out.println(userInfo.getKey() + "--" + userInfo.getValue());
+        }
+        //删除
+        hashOperations.delete("userInfo","name");
     }
 
     /**
